@@ -5,6 +5,39 @@ from aws_ec2_manager import AWSEC2Manager
 
 import sys
 import os
+import itertools
+import threading
+import time
+
+from functools import wraps
+
+def progress_bar(message, event):
+    chars = itertools.cycle(r'-\|/')
+
+    while not event.is_set():
+        sys.stdout.write('\r%s ' % str(message)  + next(chars))
+        sys.stdout.flush()
+        event.wait(0.2)
+
+    if event.is_set():
+        sys.stdout.write('\r')
+        sys.stdout.flush()
+
+def run_with_progress_bar(message):
+    def run_with_progress_bar_decorator(func):
+        @wraps(func)
+        def func_wrapper(*args, **kwargs):
+            event = threading.Event()
+            progress_bar_thread = threading.Thread(target = progress_bar, args = (str(message), event,))
+
+            progress_bar_thread.start()
+            func(*args, **kwargs)
+            event.set()
+            progress_bar_thread.join()
+
+        return func_wrapper
+
+    return run_with_progress_bar_decorator
 
 def connectToEC2(aws_key=None, aws_secret=None):
     global _ec2
@@ -39,15 +72,27 @@ def sshIntoInstance(args):
     _ec2.sshIntoInstance(ssh_dest, ssh_user, aws_pem)
 
 class DisplayAllActiveInstances(argparse.Action):
+    @run_with_progress_bar("Retrieving")
     def __call__(self, parser, namespace, values, option_string = None):
+        instances = self.getActiveInstances(namespace)
+        self.displayActiveInstances(instances)
+    
+    def getActiveInstances(self, namespace):
         keys = getAWSKeys(namespace)
         connectToEC2(keys['aws_key'], keys['aws_secret'])
+        instances = _ec2.instances
 
-        print("%-40s %-50s %-20s %-15s %-20s" % ("Tags", "Public DNS Name", "IP Address", "Type", "Launch Time"))
-        print("-" * 155)
+        return instances
 
-        for instance in _ec2.instances:
-            print("%-40s %-50s %-20s %-15s %-30s" % (", ".join(instance.tags), instance.public_dns_name, instance.ip_address, instance.type, instance.launch_time))
+    def displayActiveInstances(self, instances):
+        sys.stdout.write("\r%-40s %-50s %-20s %-15s %-20s\n" % ("Tags", "Public DNS Name", "IP Address", "Type", "Launch Time"))
+        sys.stdout.write("-" * 155)
+        sys.stdout.write('\n')
+
+        for instance in instances:
+            sys.stdout.write("%-40s %-50s %-20s %-15s %-30s\n" % (", ".join(instance.tags), instance.public_dns_name, instance.ip_address, instance.type, instance.launch_time))
+
+        sys.stdout.flush()
 
 def initArgParse():
     parser = argparse.ArgumentParser()

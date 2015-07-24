@@ -25,7 +25,7 @@ class AWSEC2Manager:
     @property
     def instances(self):
         active_instances = []
-
+        
         for reservation in self.reservations:
             for instance in reservation.instances:
                 i = Dict({
