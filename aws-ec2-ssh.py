@@ -33,9 +33,10 @@ def sshIntoInstance(args):
     connectToEC2(keys['aws_key'], keys['aws_secret'])
 
     ssh_dest = None if args.ssh is None else args.ssh[0]
+    ssh_user = None if args.ssh_user is None else args.ssh_user[0]
     aws_pem = None if args.pem is None else args.pem[0]
 
-    _ec2.sshIntoInstance(ssh_dest, aws_pem)
+    _ec2.sshIntoInstance(ssh_dest, ssh_user, aws_pem)
 
 class DisplayAllActiveInstances(argparse.Action):
     def __call__(self, parser, namespace, values, option_string = None):
@@ -80,6 +81,14 @@ def initArgParse():
         action = "store",
         dest = "ssh",
         help = "SSH Into One of the Active Instances"
+    )
+
+    parser.add_argument(
+        "--ssh-user",
+        nargs = 1,
+        action = "store",
+        dest = "ssh_user",
+        help = "User to SSH into Instance With"
     )
 
     parser.add_argument(

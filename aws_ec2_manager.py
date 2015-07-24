@@ -48,7 +48,7 @@ class AWSEC2Manager:
 
         return None
 
-    def sshIntoInstance(self, instance_name, pem = None, user = None):
+    def sshIntoInstance(self, instance_name, ssh_user = None, pem = None):
         for instance in self.instances:
             if instance_name in instance.tags:
                 pem = pem or self.findPemInCurrentDir()
@@ -57,4 +57,4 @@ class AWSEC2Manager:
                     print("Error: Unable to find .pem AWS auth file in current directory")
                     exit(0)
 
-                subprocess.call(['ssh', '-i', str(pem), 'ubuntu@%s' % str(instance.public_dns_name)])
+                subprocess.call(['ssh', '-i', str(pem), '%s@%s' % (ssh_user or "ubuntu", str(instance.public_dns_name))])
