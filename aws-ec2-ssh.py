@@ -23,6 +23,9 @@ def progress_bar(message, event):
         sys.stdout.write('\r')
         sys.stdout.flush()
 
+"""
+Decorator that runs a method with a progress bar thread
+"""
 def run_with_progress_bar(message):
     def run_with_progress_bar_decorator(func):
         @wraps(func)
@@ -39,10 +42,17 @@ def run_with_progress_bar(message):
 
     return run_with_progress_bar_decorator
 
+"""
+Establishes global EC2 connection
+"""
 def connectToEC2(aws_key=None, aws_secret=None):
     global _ec2
     _ec2 = AWSEC2Manager(aws_key, aws_secret)
 
+
+"""
+Retrieves AWS Access and Secret Key from either input params or environmental variables
+"""
 def getAWSKeys(namespace):
     aws_key = None
     aws_secret = None
@@ -61,6 +71,9 @@ def getAWSKeys(namespace):
 
     return { 'aws_key': aws_key, 'aws_secret': aws_secret }
 
+"""
+SSH Into Specified Instance Specifications
+"""
 def sshIntoInstance(args):
     keys = getAWSKeys(args)
     connectToEC2(keys['aws_key'], keys['aws_secret'])
@@ -71,6 +84,9 @@ def sshIntoInstance(args):
 
     _ec2.sshIntoInstance(ssh_dest, ssh_user, aws_pem)
 
+"""
+ArgParse
+"""
 class DisplayAllActiveInstances(argparse.Action):
     @run_with_progress_bar("Retrieving")
     def __call__(self, parser, namespace, values, option_string = None):
