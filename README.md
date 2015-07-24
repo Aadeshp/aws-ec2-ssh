@@ -24,7 +24,6 @@ ec1     ec2-XX-X-XXX-XXX.compute-1.amazonaws.com    XX-X-XXX-XXX      m3.medium 
 ```
 
 ### SSH Into An Instance
-- The user is defaulted to ubuntu, if you want to ssh as a different user, send a --ssh-user parameter
 - The following will only work if your .pem AWS authentication file is in the same directory as the script
 ```bash
 $ aws-ec2-ssh --ssh ec1
@@ -33,3 +32,12 @@ $ aws-ec2-ssh --ssh ec1
 ```bash
 $ aws-ec2-ssh --ssh ec1 --pem /Path/To/Pem/File
 ```
+- If you don't have your AWS keys saved on your machine:
+```bash
+$ aws-ec2-ssh --ssh ec1 --aws-key [AWS ACCESS KEY ID HERE] --aws-secret [AWS SECRET ACCESS KEY HERE]
+```
+- If you don't want to SSH as ubuntu
+```bash
+$ aws-ec2-ssh --ssh ec1 --ssh-user ubuntu
+```
+
